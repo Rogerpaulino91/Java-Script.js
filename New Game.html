@@ -1,0 +1,335 @@
+<!doctype HTML>
+<html>
+	<head>
+			<meta charset="UTF-8">
+			<title>New Game</title>
+			<script src="Sprite.js"></script>
+			<style>
+
+					canvas  {  
+					position: abosolute;
+					top: 0px;
+					bottom: 0px;
+					left: 0 px;
+					right: 0px;
+					margin: auto;
+				}
+		</style>
+</head>
+<body>
+<script> 
+
+//variaveis do jogo 
+
+		var canvas, ctx, altura, largura,velocidade = 6, maxPulos = 3, estadoAtual,record,img,
+
+			pontosParaNovaFase = [5,10,15,20],
+			faseAtual = 0,
+
+			labelNovaFase = { 
+
+				texto: "",
+				opacidade: 0.0,
+
+				fadeIn: function(dt) { 
+					var fadeInId = setInterval(function(){
+						if (labelNovaFase.opacidade < 1.0)
+							labelNovaFase.opacidade += 0.01;
+						else { 
+							clearInterval(fadeInId);
+						}
+					},10 * dt);
+
+				}
+
+				fadeIn: function(dt) { 
+					var fadeOutId = setInterval(function(){
+						if (labelNovaFase.opacidade > 0.0)
+							labelNovaFase.opacidade -= 0.01;
+						else { 
+							clearInterval(fadeOutId);
+						}
+
+					},10 * dt);
+
+				}
+			},
+
+			estados = { 
+				jogar: 0,
+				jogando: 1,
+				perdeu: 2,
+		},
+
+		chao = { 
+			y: 550, 
+			x: 0,
+			altura: 50,
+
+		atualiza: function(){
+			this.x -=velocidade;
+
+			if(this.x<= -30)
+				this.x +=30;
+		},
+
+
+		desenha: function() {
+				SpriteChao.desenha(this.x, this.y);
+				SpriteChao.desenha(this.x + SpriteChao.largura,this.y);
+			}
+		},
+
+		bloco = {
+			x: 50,
+			y: 0,
+			altura: spriteBoneco.altura,
+			largura: spriteBoneco.largura,
+			gravidade : 1.6,
+			velocidade: 0,
+			forcaDoPulo: 23.6,
+			qntPulos: 0,
+			score: 0,
+			rotacao: 0,
+
+			vidas: 3,
+			colidindo; false,
+
+			atualiza: function() { 
+				this.velocidade += this.gravidade;
+				this.y += this.velocidade;
+				this.rotacao +=Math.PI / 180 * velocidade;
+
+		if ( this.y > chao.y - this.altura && estadoAtual != estados.perdeu) { 
+			 this.y = chao.y - this.altura;
+			 this.qntPulos = 0;
+			 this.velocidade = 0;
+
+			 }
+
+			},
+
+			pula: function()	{ 
+				if (this.qntPulos < maxPulos) {
+				this.velocidade = -this.forcaDoPulo;
+				this.qntPulos++;
+			}
+		},
+			reset: function() { 
+				this.velocidade = 0,
+				this.y = 0;
+				if(this.score > record) {
+					record = this.score;
+					localStorage.setItem("record", this.score);
+
+				}
+
+				this.vidas = 3; 
+				this.score = 0;
+
+				velocidade = 6; 
+				faseAtual = 0; 
+				this.gravidade = 1.6; 
+			},
+
+			desenha: function() {
+				ctx.save();
+				ctx.translate(this.x + this.largura / 2, this.y + this.altura / 2);
+				ctx.rotate(this.rotacao);
+				spriteBoneco.desenha(-this.largura / 2,-this.altura / 2);
+				cxt.restore();
+			}
+		};
+
+		obstaculos = { 
+			_obs: [],
+			_scored : false
+			_sprites: [redObstacle, pinkObstacle, blueObstacle, greenObstacle, yellowObstacle],
+
+			timerInsere: 0,
+
+			insere: function() { 
+				this._obs.push({
+					x: Largura
+					y: chao.y - Math.floor(20 + Math.random() * 100),
+					// largura: 50 + Math.floor(10* Math.random()),
+					largura: 50,
+					sprite: this._sprites[Math.floor(this._sprites.length * Math.random())]
+				})};
+
+				this.timerInsere = 30 + Math.floor(20 * Math.random());
+			},
+
+		atualiza: function() {
+
+			if(this.tempoInsere == 0)
+				this.inere();
+			else 
+				this.tempoInsere--;
+
+			for(var i = 0, tam = this._obs.length; i< tam; i++){
+				var obs = this._obs[i];
+
+				obs.x -= velocidade;
+
+				if (!bloco.colidindo && obj.x <= bloco.x + bloco.largura && bloco.x <= obj.x +. obj.largura && obj.y <= bloco.y + bloco.altura) { 
+
+				bloco.colidindo = true
+
+				setTimeout(function(){
+					bloco.colidindo = false;
+				},500);
+
+				if (bloco.vidas >=1)
+				 	bloco.vidas--;
+
+				 else {
+				 	estadoAtual = estados.perdeu
+				 }
+			}
+
+				else if (obj.x <= 0 && !obj._scored) {bloco.score++;
+					obj._scored = true;
+
+					if (faseAtual < pontosParaNovaFase.length && bloco.score == pontosParaNovaFase[faseAtual])
+						passardeFase();
+
+				}
+				else if(obj.x <= -obj.largura){
+					this._obs.splice(i,1);
+					tam--;
+					i--;
+				}
+			}
+		},
+
+		limpa: function() { 
+			this._obs = []
+		},
+
+		desenha: function() {
+			for (var i=0; tam= this._obs.length; i < tam; i++){ 
+				var obs = this.obs[i];
+				
+				obj.sprite.desenha(obj.x, obj.y);
+			}
+		}
+
+		};
+
+
+		function clique(event) {
+	
+		if (estadoAtual == estados.jogar){ 
+			estadosAtual = estados.jogando;
+			frames = 0;
+
+			}
+
+		
+		else if ( estadoAtual == estados.perdeu && bloco.y >=2 * Altura) {
+		estadoAtual = estados.jogar;
+		obstaculos.limpa();
+		bloco.reset();
+	}
+
+		else if (estadoAtual == estados.jogando)
+
+		bloco.pula();
+	}
+
+		function passarDeFase() { 
+			velocidade++;
+			faseAtual++;
+			blocos.vidas++;
+
+			if (faseAtual == 4)
+			bloco.gravidade *=0.6;
+
+			labelNovaFase.texto ="level" + faseAtual;
+			labelNovaFase.fadeIn(0.4);
+
+			setTimeout(function() { 
+
+				labelNovaFase.fadeOut(0.4);
+			},800);
+		}
+
+
+		function main(){
+
+			altura = window.innerHeight;
+			largura = window.innerWidth;
+
+			if (largura >=500) { 
+				largura = 600;
+				altura = 600;
+	}
+
+			canvas = document.createElement("canvas")
+			canvas.width = largura;
+			canvas.height = altura;
+			canvas.style.border = "1px solid #000";
+
+			ctx = canvas.getContext("2d");
+			document.body.appendChild(canvas);
+			document.addEventListener("mousedown,clique");
+
+			estadoAtual = estados.jogar;
+	}	
+			record = localStorage.getItem("record");
+
+			if (record == null)
+				record = 0;
+
+			img = new Image();
+			img.src ="sheet.png";
+
+			roda();
+
+		}
+
+			function roda(){
+
+			atualiza();
+			desenha();
+
+			window.requestAnimationFrame(roda);
+	}
+
+			function atualiza(){}
+			if (estadoAtual == estados.jogando)
+			obstaculos.atualiza();
+			chao.atualiza();
+			bloco atualiza();
+
+	}
+
+			function desenha() { 
+	
+			
+	ctx.fillstyle = "#80daff";
+	ctx.fillRect(0, 0, Largura, Altura);
+
+	if(estadoAtual == estados.jogar){ 
+		ctx.fillstyle = "green";
+		ctx.fillRect(Largura/2 - 50,Altura/2 - 50,100,,100);}
+	else if (estadoAtual == estados.perdeu){
+		ctx.fillstyle ="red";
+		ctx.fillRect(Largura / 2 - 50,Altura/2 - 50,100,,100);
+	}
+	else if ( estadoAtual = estados.jogando)
+		obstaculos.desenha();
+
+	chao.desenha();
+	bloco.desenha();
+
+	}
+
+//incializa o jogo 
+
+main();
+
+</script>
+</body>
+</html>
